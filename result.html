@@ -2,44 +2,175 @@
 <html>
 <head>
     <title>Result</title>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #74ebd5, #9face6);
+        }
+
+        .container {
+            width: 800px;
+            max-width: 95%;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h1, h2, h3 {
+            margin-bottom: 15px;
+        }
+
+        /* Score Box Color */
+        .score-box {
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .green {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .blue {
+            background: #2196F3;
+            color: white;
+        }
+
+        .red {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .subject-box {
+            background: #f1f1f1;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+
+        .subject-box:hover {
+            transform: scale(1.03);
+            background: #dff5e1;
+        }
+
+        canvas {
+            max-width: 400px;
+            margin: 30px auto;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+    </style>
+
 </head>
 <body>
+
 <div class="container">
-    <h1>Final Assessment Result</h1>
+
+    <h1>🏆 Final Result</h1>
 
     <h2>Name: {{ student_name }}</h2>
-    <h3>Score: {{ score }} / {{ total }}</h3>
-    <h3>Percentage: {{ percentage }}%</h3>
 
-    <canvas id="pieChart"></canvas>
+    <!-- ✅ Score Box With Color -->
+    <div class="score-box
+        {% if percentage >= 75 %}
+            green
+        {% elif percentage >= 40 %}
+            blue
+        {% else %}
+            red
+        {% endif %}
+    ">
+        Score: {{ score }} / {{ total }} <br>
+        Percentage: {{ percentage }}%
+    </div>
 
-    <h2>Subject Analysis</h2>
-    {% for topic, percent in topic_analysis.items() %}
-        <div class="subject-box">
-            <h3>{{ topic }}</h3>
-            <p>{{ percent }}%</p>
-        </div>
-    {% endfor %}
+    <!-- ✅ Chart -->
+    <canvas id="resultChart"></canvas>
 
-    <a href="/"><button>Restart Quiz</button></a>
-    <a href="/leaderboard"><button>View Leaderboard</button></a>
+    <h2>📊 Topic Analysis</h2>
+
+    {% if topic_analysis %}
+        {% for topic, percent in topic_analysis.items() %}
+            <div class="subject-box">
+                <h3>{{ topic }}</h3>
+                <p>{{ percent }}%</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No topic data available.</p>
+    {% endif %}
+
+    <br>
+
+    <a href="/"><button>🔄 Restart Quiz</button></a>
+    <a href="/leaderboard"><button>🏆 View Leaderboard</button></a>
+
 </div>
 
+<!-- ✅ Chart Script -->
 <script>
-    var ctx = document.getElementById('pieChart').getContext('2d');
 
-    var chart = new Chart(ctx, {
-        type: 'pie',
+    var ctx = document.getElementById("resultChart").getContext("2d");
+
+    var labels = [{% for topic in topic_analysis.keys() %}"{{ topic }}",{% endfor %}];
+
+    var data = [{% for value in topic_analysis.values() %}{{ value }},{% endfor %}];
+
+    var colors = labels.map(() =>
+        "#" + Math.floor(Math.random()*16777215).toString(16)
+    );
+
+    new Chart(ctx, {
+        type: "pie",
         data: {
-            labels: [{% for topic in topic_analysis.keys() %}"{{ topic }}",{% endfor %}],
+            labels: labels,
             datasets: [{
-                data: [{% for value in topic_analysis.values() %}{{ value }},{% endfor %}],
-                backgroundColor: ['#4CAF50','#2196F3','#FF5722']
+                data: data,
+                backgroundColor: colors
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
         }
     });
+
 </script>
+
 </body>
 </html>

@@ -1,45 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Smart Adaptive Quiz System</title>
+    <title>Quiz App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+<div class="container">
+<h1>Online Quiz System</h1>
+<form action="/start" method="POST">
 
-<div class="container start-container">
+<input type="text" name="student_name" placeholder="Enter Your Name" required>
 
-    <h1>🧠 Smart Adaptive Quiz System</h1>
+<br><br>
 
-    <p style="font-size:18px; margin-bottom:30px;">
-        Welcome to the Intelligent Assessment Platform.<br>
-        This quiz analyzes your performance and generates a personalized competence profile.
-    </p>
+<input type="text" name="topic" placeholder="Enter Topic Name" required>
 
-    <div class="student-info">
+<br><br>
 
-        <form action="/start" method="POST">
+<button type="submit">Start Quiz</button>
 
-            <label style="font-size:18px; font-weight:bold;">
-                Enter Your Name
-            </label>
-
-            <br><br>
-
-            <input type="text" 
-                   name="student_name" 
-                   placeholder="Enter your full name" 
-                   required
-                   style="width:60%; padding:12px; border-radius:8px; border:1px solid #ccc; font-size:16px;">
-
-            <br><br><br>
-
-            <button type="submit">Start Quiz</button>
-
-        </form>
-
-    </div>
-
+</form>
 </div>
-
 </body>
 </html>

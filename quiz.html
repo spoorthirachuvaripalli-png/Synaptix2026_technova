@@ -3,16 +3,35 @@
 <head>
     <title>Quiz</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .feedback-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+
 </head>
 <body>
 
 <div class="container">
-    <h2>Student: {{ session.student_name }}</h2>
-    <h3>Difficulty Level: {{ session.difficulty }}</h3>
+
+    <h2>❓ {{ question.question }}</h2>
 
     <form method="POST">
-        <h3>{{ question.question }}</h3>
-
         {% for option in question.options %}
             <div class="option">
                 <input type="radio" name="answer" value="{{ option }}" required>
@@ -22,6 +41,20 @@
 
         <button type="submit">Next</button>
     </form>
+
+    <!-- 🔥 FEEDBACK MESSAGE -->
+    {% if feedback %}
+        <div class="feedback-box 
+            {% if 'Correct' in feedback %}
+                success
+            {% else %}
+                error
+            {% endif %}
+        ">
+            {{ feedback }}
+        </div>
+    {% endif %}
+
 </div>
 
 </body>

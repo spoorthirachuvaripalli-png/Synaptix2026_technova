@@ -1,117 +1,188 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, session
 from datetime import datetime
+import random
+
+# 🔥 If you want real AI question generation later, we can connect OpenAI API.
+# For now we generate questions automatically using topic.
 
 app = Flask(__name__)
-app.secret_key = "secret_key"
+app.secret_key = "smart_quiz_system"
 
-# 🏆 Temporary Storage for Leaderboard
 leaderboard = []
 
-# ---------------- HOME ----------------
+
+# ==========================================
+# HOME PAGE
+# Student enters Name + Topic
+# ==========================================
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
 
-# ---------------- START QUIZ ----------------
+# ==========================================
+# START QUIZ
+# Store Topic + Generate Questions
+# ==========================================
 @app.route("/start", methods=["POST"])
-def start_quiz():
+def start():
+
     student_name = request.form.get("student_name")
-
-    questions = [
-
-        # Math
-        {"question": "5 + 3 = ?", "options": ["6", "7", "8", "9"], "answer": "8", "topic": "Math"},
-        {"question": "10 × 2 = ?", "options": ["10", "15", "20", "25"], "answer": "20", "topic": "Math"},
-
-        # Science
-        {"question": "Water formula?", "options": ["CO2", "H2O", "O2", "NaCl"], "answer": "H2O", "topic": "Science"},
-        {"question": "Red Planet?", "options": ["Earth", "Mars", "Jupiter", "Venus"], "answer": "Mars", "topic": "Science"},
-
-        # GK
-        {"question": "Capital of India?", "options": ["Mumbai", "Delhi", "Chennai", "Kolkata"], "answer": "Delhi", "topic": "GK"},
-        {"question": "Father of Nation?", "options": ["Nehru", "Gandhi", "Bose", "Ambedkar"], "answer": "Gandhi", "topic": "GK"},
-    ]
+    topic = request.form.get("topic")
 
     session["student_name"] = student_name
-    session["questions"] = questions
-    session["current_question"] = 0
+    session["topic"] = topic
     session["score"] = 0
-    session["topic_scores"] = {}
+    session["current_question"] = 0
+    session["answers"] = []
 
-    return redirect(url_for("quiz"))
+    # 🔥 Smart Question Generator
+    verbs = [
+        "Explain",
+        "Define",
+        "Describe",
+        "What is",
+        "Why is",
+        "How does"
+    ]
+
+    concepts = [
+        "basic concept",
+        "key feature",
+        "main advantage",
+        "important use",
+        "core principle"
+    ]
+
+    generated_questions = []
+
+    for i in range(5):
+
+        verb = random.choice(verbs)
+        concept = random.choice(concepts)
+
+        correct_answer = f"{topic} {concept}"
+
+        wrong_options = [
+            f"Wrong idea about {topic}",
+            f"Not related to {topic}",
+            f"Incorrect {topic} concept",
+        ]
+
+        options = wrong_options + [correct_answer]
+        random.shuffle(options)
+
+        generated_questions.append({
+            "question": f"{verb} the {concept} of {topic}",
+            "options": options,
+            "answer": correct_answer,
+            "topic": topic
+        })
+
+    session["questions"] = generated_questions
+
+    return redirect("/quiz")
 
 
-# ---------------- QUIZ ----------------
+# ==========================================
+# QUIZ PAGE
+# ==========================================
 @app.route("/quiz", methods=["GET", "POST"])
 def quiz():
+
     questions = session.get("questions", [])
-    current = session.get("current_question", 0)
+    index = session.get("current_question", 0)
+
+    if index >= len(questions):
+        return redirect("/result")
+
+    question = questions[index]
 
     if request.method == "POST":
-        if current < len(questions):
-            selected = request.form.get("answer")
-            correct = questions[current]["answer"]
-            topic = questions[current]["topic"]
 
-            if topic not in session["topic_scores"]:
-                session["topic_scores"][topic] = {"correct": 0, "total": 0}
+        selected_answer = request.form.get("answer")
+        session["answers"].append(selected_answer)
 
-            session["topic_scores"][topic]["total"] += 1
+        # ✅ Check Answer
+        if selected_answer == question["answer"]:
+            session["score"] += 1
+            session["feedback"] = "✅ Correct Answer!"
+        else:
+            session["feedback"] = f"❌ Wrong! Learn more about {question['topic']}"
 
-            if selected == correct:
-                session["score"] += 1
-                session["topic_scores"][topic]["correct"] += 1
+        session["current_question"] += 1
 
-            session["current_question"] = current + 1
+        return redirect("/quiz")
 
-        return redirect(url_for("quiz"))
-
-    if current >= len(questions):
-        return redirect(url_for("result"))
-
-    return render_template("quiz.html", question=questions[current])
+    return render_template(
+        "quiz.html",
+        question=question,
+        feedback=session.get("feedback")
+    )
 
 
-# ---------------- RESULT ----------------
+# ==========================================
+# RESULT PAGE
+# ==========================================
 @app.route("/result")
 def result():
+
     student_name = session.get("student_name")
-    score = session.get("score")
-    questions = session.get("questions")
-    topic_scores = session.get("topic_scores")
+    questions = session.get("questions", [])
+    answers = session.get("answers", [])
+    score = session.get("score", 0)
 
     total = len(questions)
-    percentage = round((score / total) * 100)
 
-    # 🏆 Save to Leaderboard
-    leaderboard.append({
-        "name": student_name,
-        "score": score,
-        "percentage": percentage,
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M")
-    })
+    if total == 0:
+        return redirect("/")
 
-    # Sort Leaderboard by percentage (highest first)
-    leaderboard.sort(key=lambda x: x["percentage"], reverse=True)
+    percentage = round((score / total) * 100, 2)
 
+    # ✅ Create topic_analysis safely
     topic_analysis = {}
-    for topic, data in topic_scores.items():
-        topic_percentage = round((data["correct"] / data["total"]) * 100)
-        topic_analysis[topic] = topic_percentage
 
-    return render_template("result.html",
-                           student_name=student_name,
-                           score=score,
-                           total=total,
-                           percentage=percentage,
-                           topic_analysis=topic_analysis)
+    for i in range(total):
+        topic = questions[i]["topic"]
+
+        if topic not in topic_analysis:
+            topic_analysis[topic] = 0
+
+        if i < len(answers) and answers[i] == questions[i]["answer"]:
+            topic_analysis[topic] += 1
+
+    # Convert to percentage
+    for topic in topic_analysis:
+        topic_analysis[topic] = round((topic_analysis[topic] / total) * 100, 2)
+
+    return render_template(
+        "result.html",
+        student_name=student_name,
+        score=score,
+        total=total,
+        percentage=percentage,
+        topic_analysis=topic_analysis   # 🔥 IMPORTANT
+    )
+
+    return render_template(
+        "result.html",
+        student_name=student_name,
+        score=score,
+        total=total,
+        percentage=percentage,
+        topic=topic
+    )
 
 
-# ---------------- LEADERBOARD PAGE ----------------
+# ==========================================
+# LEADERBOARD
+# ==========================================
 @app.route("/leaderboard")
-def show_leaderboard():
-    return render_template("leaderboard.html", leaderboard=leaderboard)
+def leaderboard_page():
+
+    sorted_board = sorted(leaderboard, key=lambda x: x["score"], reverse=True)
+
+    return render_template("leaderboard.html", leaderboard=sorted_board)
 
 
 if __name__ == "__main__":
