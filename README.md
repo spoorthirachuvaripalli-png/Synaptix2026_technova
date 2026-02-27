@@ -1,1 +1,1 @@
-# Synaptix2026_technova
+develop an adaptive online assessment platform that dynamically adjusts question difficulty in real time based on student responses and performance patterns. the system should generate a personalized competency profile at the end of the assessment,highlighting strenghts,weakness,and mastery levels across topics
