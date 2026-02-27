@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaderboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>🏆 Leaderboard</h1>
+
+    <table border="1" width="100%" cellpadding="10">
+        <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Date</th>
+        </tr>
+
+        {% for student in leaderboard %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.score }}</td>
+            <td>{{ student.percentage }}%</td>
+            <td>{{ student.time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="/"><button>Back to Home</button></a>
+</div>
+</body>
+</html>

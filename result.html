@@ -2,16 +2,44 @@
 <html>
 <head>
     <title>Result</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Final Score: {{ score }}/5</h1>
+<div class="container">
+    <h1>Final Assessment Result</h1>
 
-    <h2>Competence Profile</h2>
+    <h2>Name: {{ student_name }}</h2>
+    <h3>Score: {{ score }} / {{ total }}</h3>
+    <h3>Percentage: {{ percentage }}%</h3>
 
-    {% for topic, level in mastery.items() %}
-        <p>{{ topic }} : {{ level }}</p>
+    <canvas id="pieChart"></canvas>
+
+    <h2>Subject Analysis</h2>
+    {% for topic, percent in topic_analysis.items() %}
+        <div class="subject-box">
+            <h3>{{ topic }}</h3>
+            <p>{{ percent }}%</p>
+        </div>
     {% endfor %}
 
-    <a href="/">Take Again</a>
+    <a href="/"><button>Restart Quiz</button></a>
+    <a href="/leaderboard"><button>View Leaderboard</button></a>
+</div>
+
+<script>
+    var ctx = document.getElementById('pieChart').getContext('2d');
+
+    var chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: [{% for topic in topic_analysis.keys() %}"{{ topic }}",{% endfor %}],
+            datasets: [{
+                data: [{% for value in topic_analysis.values() %}{{ value }},{% endfor %}],
+                backgroundColor: ['#4CAF50','#2196F3','#FF5722']
+            }]
+        }
+    });
+</script>
 </body>
 </html>

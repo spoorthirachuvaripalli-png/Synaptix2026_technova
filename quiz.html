@@ -2,18 +2,27 @@
 <html>
 <head>
     <title>Quiz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>{{ question.question }}</h2>
+
+<div class="container">
+    <h2>Student: {{ session.student_name }}</h2>
+    <h3>Difficulty Level: {{ session.difficulty }}</h3>
 
     <form method="POST">
-        {% for option in question.options %}
-            <input type="radio" name="option" value="{{ option }}" required>
-            {{ option }} <br>
-        {% endfor %}
-        <button type="submit">Submit</button>
-    </form>
+        <h3>{{ question.question }}</h3>
 
-    <p>Current Difficulty Level: {{ session.difficulty }}</p>
+        {% for option in question.options %}
+            <div class="option">
+                <input type="radio" name="answer" value="{{ option }}" required>
+                {{ option }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Next</button>
+    </form>
+</div>
+
 </body>
 </html>
